@@ -7,39 +7,32 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Generador de Gráfico</title>
     <link rel="stylesheet" href="estilo.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
 
 <body>
     <h1>Generador de Gráficos</h1>
-
-    <div class="left">
-        <select name="" id="tipo">
-            <option value="circular">
-                Gráfico Circular
-            </option>
-            <option value="columna">
-                Gráfico de Columnas
-            </option>
-        </select>
-        <input type="text" placeholder="Título del Gráfico" id="titulo">
-        <div class="datos" id="datos">
-            <div class="dato">
-                <input type="text" placeholder="Leyenda 1" class="serie">
-                <input type="text" placeholder="Valor 1" class="valor">
-            </div>
-            <div class="dato">
-                <input type="text" placeholder="Leyenda 2" class="serie">
-                <input type="text" placeholder="Valor 2" class="valor">
-            </div>
+    <div class="container">
+        <div class="left">
+            <h2>Agregar datos</h2>
+            <input type="text" id="titulo" placeholder="Título del gráfico">
+            <select id="tipo" onchange="setDefaultParameters()">
+                <option value="barras-roi">Barras - ROI por Campaña</option>
+                <option value="linea-evolucion-matriculas">Líneas - Evolución de Matrículas</option>
+                <option value="pastel-gastos-publicidad">Pastel - Distribución de Gastos en Publicidad</option>
+                <option value="dispersion-inversion-matriculas">Dispersión - Relación entre Inversión y Matrículas</option>
+                <option value="area-crecimiento-matriculas">Área - Crecimiento de Matrículas por Año</option>
+                <option value="histograma-edad-estudiantes">Histograma - Distribución de Edad de Estudiantes</option>
+            </select>
+            <div id="datos"></div>
+            <button class="agregar" onclick="agregarDato()">Agregar Dato</button>
+            <button class="crear-grafico" onclick="drawChart()">Crear Gráfico</button>
         </div>
-        <button onclick="agregarDato()" class="agregar"> + </button>
-        <button onclick="cargarGrafico()" class="crear-grafico">Crear Gráfico</button>
+        <div class="right">
+            <div id="piechart" style="width: 600px; height: 400px;"></div>
+            <button class="exportar" onclick="exportarImagen()">Descargar Imagen</button>
+        </div>
     </div>
-    <div class="right">
-        <div id="piechart"></div>
-    </div>
-
-
     <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
     <script src="script.js"></script>
 </body>

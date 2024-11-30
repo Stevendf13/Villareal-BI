@@ -1,90 +1,124 @@
-//Variable que guarda la cantidad de leyendas a insertar en el gráfico
-let cantidadLeyendas;
-//Este arreglo guardara los pares de elementos que se insertaran en el grafico:
-//Se guardara en formato de arreglo. Ejemplo: 
-//[['leyenda 1', 600],['leyenda 2', 200]]
-var arregloDatos = [];
+google.charts.load('current', { packages: ['corechart'] });
 
-//Funciòn que agregar una leyenda mas
-function agregarDato() {
-    //tomo la cantidad de leyendas actual
-    cantidadLeyendas = document.getElementsByClassName("dato").length;
-    //Le sumo 1
-    cantidadLeyendas++;
+let arregloDatos = [];
 
-    //Creo un nuevo elemento div, que contendra los datos nuevos
+function agregarDato(prestablecidoLeyenda = "", prestablecidoValor = "") {
+    const datos = document.getElementById("datos");
+    const cantidad = datos.getElementsByClassName("dato").length + 1;
+
     const dato = document.createElement("div");
     dato.className = "dato";
 
-    //Creo el input de la leyenda y le asigno sus propiedades y clases
     const inputLeyenda = document.createElement("input");
     inputLeyenda.type = "text";
     inputLeyenda.className = "serie";
-    inputLeyenda.placeholder = "Leyenda " + cantidadLeyendas;
-    //Agrego el input al div datos
+    inputLeyenda.placeholder = prestablecidoLeyenda;
     dato.appendChild(inputLeyenda);
-    document.getElementById("datos").appendChild(dato);
 
-    //Creo el input para el valor y le asigno sus propiedades y clases
     const inputValor = document.createElement("input");
-    inputValor.type = "text";
+    inputValor.type = "text"; // Permitir porcentajes o números
     inputValor.className = "valor";
-    inputValor.placeholder = "Valor " + cantidadLeyendas;
-    //Agrego el input al div datos
+    inputValor.placeholder = prestablecidoValor;
     dato.appendChild(inputValor);
-    document.getElementById("datos").appendChild(dato);
+
+    datos.appendChild(dato);
 }
 
-//Función que cargar el gràfico de Google
-function cargarGrafico() {
-    // Cargo el gráfico de Google
-    google.charts.load('current', {
-        'packages': ['corechart']
-    });
-    google.charts.setOnLoadCallback(drawChart);
+function setDefaultParameters() {
+    const tipo = document.getElementById("tipo").value;
+    const datosContainer = document.getElementById("datos");
+    datosContainer.innerHTML = ''; // Limpiar los datos anteriores.
+
+    // Textos guía según el gráfico seleccionado.
+    switch (tipo) {
+        case 'barras-roi':
+            document.getElementById("titulo").value = "ROI por Campaña";
+            agregarDato("Eje X (Campañas)", "Eje Y (ROI)");
+            break;
+        case 'linea-evolucion-matriculas':
+            document.getElementById("titulo").value = "Evolución de Matrículas";
+            agregarDato("Eje X (Meses)", "Eje Y (Matrículas)");
+            break;
+        case 'pastel-gastos-publicidad':
+            document.getElementById("titulo").value = "Distribución de Gastos en Publicidad";
+            agregarDato("Categoría", "Porcentaje");
+            break;
+        case 'dispersion-inversion-matriculas':
+            document.getElementById("titulo").value = "Relación entre Inversión y Matrículas";
+            agregarDato("Eje X (Inversión en Soles)", "Eje Y (Matrículas)");
+            break;
+        case 'area-crecimiento-matriculas':
+            document.getElementById("titulo").value = "Crecimiento de Matrículas por Año";
+            agregarDato("Eje X (Años)", "Eje Y (Matrículas acumuladas)");
+            break;
+        case 'histograma-edad-estudiantes':
+            document.getElementById("titulo").value = "Distribución de Edad de Estudiantes";
+            agregarDato("Intervalo de Edad", "Frecuencia");
+            break;
+    }
 }
 
-// Dibujo el gráfico y coloco los valores
 function drawChart() {
-    arregloDatos = [];
-    //Recupero los inputs que hay dentro del div datos
-    var datos = document.getElementById("datos").getElementsByTagName("input");
-    //El primer par [x,x] a insertar en arregloDatos debe ser info del grafico.
-    //Esta info no es visible, por lo tanto es indistinto el valor que le asignemos
+    const datos = document.getElementById("datos").getElementsByClassName("dato");
+    arregloDatos = [['Categoría', 'Valor']];
 
-    //Controlo que todos los input tengan un valor cargado
-    for (i = 0; i < datos.length; i++) {
-        if (datos[i].value === "") {
-            alert("Cargue todos los campos");
+    for (let i = 0; i < datos.length; i++) {
+        const categoria = datos[i].querySelector(".serie").value;
+        let valor = datos[i].querySelector(".valor").value;
+
+        // Convertir porcentaje a decimal si es necesario
+        if (valor.includes('%')) {
+            valor = parseFloat(valor.replace('%', '')) / 100;
+        } else {
+            valor = parseFloat(valor);
+        }
+
+        if (!categoria || isNaN(valor)) {
+            alert("Complete todos los campos correctamente.");
             return;
         }
-    }
-    var t = ['Gráfico', ''];
-    arregloDatos.push(t);
 
-    for (i = 0; i < datos.length; i = i + 2) {
-        //voy agregando los pares al arreglo arreglo arregloDatos.
-        t = [datos[i].value, parseInt(datos[i + 1].value)];
-        arregloDatos.push(t);
+        arregloDatos.push([categoria, valor]);
     }
 
-    //Genero la tabla que contiene los datos con el arreglo arregloDatos
-    var data = google.visualization.arrayToDataTable(arregloDatos);
+    const data = google.visualization.arrayToDataTable(arregloDatos);
+    const options = { title: document.getElementById("titulo").value, width: 600, height: 400 };
 
-    // Opcional; Agrego el título del gráfico
-    var options = {
-        'title': document.getElementById("titulo").value,
-        'width': 600,
-    };
+    const tipo = document.getElementById("tipo").value;
+    const chartContainer = document.getElementById("piechart");
 
-    // Muestro el gráfico dentro del elemento <div>  con id="piechart"
-    //dependiendo del tipo de grafico
-    if (document.getElementById("tipo").value == "circular") {
-        var chart = new google.visualization.PieChart(document.getElementById('piechart'));
-        chart.draw(data, options);
-    } else {
-        var chart = new google.visualization.ColumnChart(document.getElementById('piechart'));
-        chart.draw(data, options);
+    let chart;
+    switch (tipo) {
+        case 'barras-roi':
+            chart = new google.visualization.BarChart(chartContainer);
+            break;
+        case 'linea-evolucion-matriculas':
+            chart = new google.visualization.LineChart(chartContainer);
+            break;
+        case 'pastel-gastos-publicidad':
+            chart = new google.visualization.PieChart(chartContainer);
+            break;
+        case 'dispersion-inversion-matriculas':
+            chart = new google.visualization.ScatterChart(chartContainer);
+            break;
+        case 'area-crecimiento-matriculas':
+            chart = new google.visualization.AreaChart(chartContainer);
+            break;
+        case 'histograma-edad-estudiantes':
+            chart = new google.visualization.Histogram(chartContainer);
+            break;
     }
+    chart.draw(data, options);
+}
 
+function exportarImagen() {
+    const elemento = document.getElementById('piechart');
+    html2canvas(elemento).then(canvas => {
+        const link = document.createElement('a');
+        link.download = 'grafico.png';
+        link.href = canvas.toDataURL();
+        link.click();
+    }).catch(error => {
+        console.error("Error al exportar el gráfico:", error);
+    });
 }
